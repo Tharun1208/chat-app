@@ -1,0 +1,143 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* Main Layout */
+.chat-container {
+  display: flex;
+  height: 100vh;
+  background: #0b141a;
+}
+
+/* Sidebar (WhatsApp Dark Panel) */
+.sidebar {
+  width: 30%;
+  background: #111b21;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+  border-right: 1px solid rgba(255,255,255,0.08);
+}
+
+.sidebar h2 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: #e9edef;
+}
+
+/* Search Bar */
+.sidebar input {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  outline: none;
+  background: #202c33;
+  color: white;
+  margin-bottom: 15px;
+}
+
+/* User List */
+.user {
+  padding: 12px;
+  background: #111b21;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s ease;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.user:hover {
+  background: #202c33;
+}
+
+/* Chat Area */
+.chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #efeae2; /* WhatsApp chat background */
+  position: relative;
+}
+
+/* Header */
+.chat-header {
+  background: #202c33;
+  color: white;
+  padding: 16px 20px;
+  font-weight: 500;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Messages Container */
+.messages {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Message Bubbles */
+.message {
+  max-width: 60%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+}
+
+/* Incoming message */
+.message {
+  background: white;
+  align-self: flex-start;
+}
+
+/* Optional: outgoing message style (add class "me") */
+.message.me {
+  background: #d9fdd3;
+  align-self: flex-end;
+}
+
+/* Input Area */
+.send-box {
+  display: flex;
+  padding: 10px;
+  background: #202c33;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Input */
+.send-box input {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: 20px;
+  border: none;
+  outline: none;
+  background: #2a3942;
+  color: white;
+}
+
+/* Button */
+.send-box button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 20px;
+  background: #00a884;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.send-box button:hover {
+  background: #029d78;
+}
