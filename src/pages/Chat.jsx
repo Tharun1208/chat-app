@@ -1,161 +1,248 @@
-import React,{useState} from "react";
-
-import axios from "axios";
-
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/chat.css";
 
-function Chat(){
+function Chat() {
+  const navigate = useNavigate();
 
-const [text,setText]=
-useState("");
+  const [theme, setTheme] = useState("dark");
 
-const [messages,
-setMessages]=
-useState([]);
+  // YOUR PROFILE (editable)
+  const [currentUser, setCurrentUser] = useState({
+    name: "Tharun",
+    username: "tharunhs",
+    bio: "Available",
+    profilePic: ""
+  });
 
-const sendMessage=
-async()=>{
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [tempBio, setTempBio] = useState(currentUser.bio);
+  const [tempImage, setTempImage] = useState(null);
 
-if(!text.trim()){
+  // 👇 NEW: OTHER USER PROFILE
+  const [selectedProfileUser, setSelectedProfileUser] = useState(null);
 
-return;
+  const [users] = useState([
+    { id: "1", name: "Alex", last: "Hey 👋", bio: "Hey there" },
+    { id: "2", name: "John", last: "See you", bio: "Busy" },
+    { id: "3", name: "Sara", last: "Ok 👍", bio: "Available" }
+  ]);
 
-}
+  const [activeUser, setActiveUser] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [text, setText] = useState("");
 
-try{
+  const openChat = (user) => {
+    setActiveUser(user);
+    setMessages([
+      { from: "them", text: "Hello 👋" },
+      { from: "me", text: "Hi!" }
+    ]);
+  };
 
-await axios.post(
+  const sendMessage = () => {
+    if (!text.trim()) return;
+    setMessages([...messages, { from: "me", text }]);
+    setText("");
+  };
 
-"http://localhost:5000/message/send",
+  const logout = () => {
+    navigate("/");
+  };
 
-{
+  const saveProfile = () => {
+    setCurrentUser({
+      ...currentUser,
+      bio: tempBio,
+      profilePic: tempImage
+        ? URL.createObjectURL(tempImage)
+        : currentUser.profilePic
+    });
 
-sender:"tharun",
+    setProfileOpen(false);
+  };
 
-receiver:"friend",
+  // ⭐ OPEN OTHER USER PROFILE
+  const openUserProfile = (user) => {
+    setSelectedProfileUser(user);
+  };
 
-message:text
+  return (
+    <div className={`wa ${theme}`}>
 
-}
+      {/* SIDEBAR */}
+      <div className="sidebar">
 
-);
+        <div className="sidebar-top">
+          <h3>WhatsApp</h3>
 
-setMessages([
+          {/* YOUR PROFILE */}
+          <div
+            className="profile-small"
+            onClick={() => {
+              setTempBio(currentUser.bio);
+              setProfileOpen(true);
+            }}
+          >
+            👤
+          </div>
+        </div>
 
-...messages,
+        <div className="chat-list">
+          {users.map((u) => (
+            <div
+              key={u.id}
+              className={`chat-item ${activeUser?.id === u.id ? "active" : ""}`}
+            >
+              
+              {/* CLICK PROFILE ICON → OPEN USER PROFILE */}
+              <div className="avatar">
+                <div
+                  className="avatar-circle"
+                  onClick={() => openUserProfile(u)}
+                />
+              </div>
 
-text
+              {/* CLICK ROW → OPEN CHAT */}
+              <div onClick={() => openChat(u)}>
+                <b>{u.name}</b>
+                <p>{u.last}</p>
+              </div>
 
-]);
+            </div>
+          ))}
+        </div>
+      </div>
 
-setText("");
+      {/* CHAT AREA */}
+      <div className="chat">
 
-}
+        {activeUser ? (
+          <>
+            <div className="chat-header">
+              <div className="avatar"></div>
+              <div>
+                <b>{activeUser.name}</b>
+                <small>online</small>
+              </div>
+            </div>
 
-catch(err){
+            <div className="messages">
+              {messages.map((m, i) => (
+                <div key={i} className={`bubble ${m.from}`}>
+                  {m.text}
+                </div>
+              ))}
+            </div>
 
-console.log(err);
+            <div className="input-bar">
+              <input
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Message"
+                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              />
+              <button onClick={sendMessage}>➤</button>
+            </div>
+          </>
+        ) : (
+          <div className="empty">Select a chat</div>
+        )}
+      </div>
 
-alert(
-"Message Failed"
-);
+      {/* YOUR PROFILE MODAL */}
+      {profileOpen && (
+        <div className="overlay" onClick={() => setProfileOpen(false)}>
+          <div className="drawer" onClick={(e) => e.stopPropagation()}>
 
-}
+            <img
+              className="big-avatar"
+              src={
+                tempImage
+                  ? URL.createObjectURL(tempImage)
+                  : currentUser.profilePic || "https://i.imgur.com/6VBx3io.png"
+              }
+            />
 
-};
+            <h3>{currentUser.name}</h3>
+            <p>@{currentUser.username}</p>
 
-return(
+            <textarea
+              value={tempBio}
+              onChange={(e) => setTempBio(e.target.value)}
+            />
 
-<div className="chat-container">
+            <input type="file" onChange={(e) => setTempImage(e.target.files[0])} />
 
-<div className="sidebar">
+            <button onClick={saveProfile}>Save Profile</button>
 
-<h2>
-ChatHub
-</h2>
+            <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+              Toggle Theme
+            </button>
 
-<input
-type="text"
-placeholder="Search users"
-/>
+            <button onClick={logout} className="logout">
+              Logout
+            </button>
 
-<div className="user">
-John
-</div>
+          </div>
+        </div>
+      )}
 
-<div className="user">
-Alex
-</div>
+      {/* ⭐ OTHER USER PROFILE MODAL */}
+      {/* ⭐ OTHER USER PROFILE MODAL */}
+{selectedProfileUser && (
+  <div className="overlay" onClick={() => setSelectedProfileUser(null)}>
+    <div className="drawer modern-profile" onClick={(e) => e.stopPropagation()}>
 
-</div>
+      {/* PROFILE IMAGE */}
+      <img
+        className="big-avatar"
+        src={
+          selectedProfileUser.profilePic ||
+          "https://i.imgur.com/6VBx3io.png"
+        }
+        alt="profile"
+      />
 
-<div className="chat-area">
+      {/* NAME */}
+      <h2>{selectedProfileUser.name}</h2>
 
-<div className="chat-header">
+      {/* USERNAME */}
+      <p className="username">@{selectedProfileUser.id}</p>
 
-Welcome
+      {/* BIO */}
+      <div className="bio-box">
+        <h4>About</h4>
+        <p>{selectedProfileUser.bio || "Hey there! I am using ChatApp"}</p>
+      </div>
 
-</div>
+      {/* STATUS INFO (optional WhatsApp style) */}
+      <div className="info-box">
+        <div>
+          <span>Status:</span>
+          <b>Available</b>
+        </div>
 
-<div className="messages">
+        <div>
+          <span>Last Seen:</span>
+          <b>today</b>
+        </div>
+      </div>
 
-{
+      {/* CLOSE */}
+      <button
+        className="close-btn"
+        onClick={() => setSelectedProfileUser(null)}
+      >
+        Close
+      </button>
 
-messages.map(
-(msg,index)=>
+    </div>
+  </div>
+)}
 
-<div
-className="message"
-key={index}
->
-
-{msg}
-
-</div>
-
-)
-
-}
-
-</div>
-
-<div className="send-box">
-
-<input
-
-value={text}
-
-onChange={(e)=>
-
-setText(
-e.target.value
-)
-
-}
-
-placeholder=
-"Type message"
-
-/>
-
-<button
-onClick={
-sendMessage
-}
->
-
-Send
-
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-);
-
+    </div>
+  );
 }
 
 export default Chat;

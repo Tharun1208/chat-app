@@ -1,119 +1,54 @@
-import React,{useState}
-from "react";
-
-import axios
-from "axios";
-
-import {
-useNavigate
-}
-from "react-router-dom";
-
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/login.css";
 
-function Login(){
+function Login() {
+  const navigate = useNavigate();
 
-const navigate=
-useNavigate();
+  const [data, setData] = useState({
+    username: "",
+    password: ""
+  });
 
-const [data,setData]=
-useState({
+  const login = () => {
+    if (!data.username || !data.password) {
+      alert("Fill all fields");
+      return;
+    }
 
-username:"",
-password:""
+    // fake login
+    localStorage.setItem("chat-user", JSON.stringify(data));
+    navigate("/chat");
+  };
 
-});
+  return (
+    <div className="login">
+      <h1>Login</h1>
 
-const handleChange=
-(e)=>{
+      <input
+        name="username"
+        placeholder="Username"
+        onChange={(e) =>
+          setData({ ...data, username: e.target.value })
+        }
+      />
 
-setData({
+      <input
+        type="password"
+        name="password"
+        placeholder="Password"
+        onChange={(e) =>
+          setData({ ...data, password: e.target.value })
+        }
+      />
 
-...data,
+      <button onClick={login}>Login</button>
 
-[e.target.name]:
-e.target.value
-
-});
-
-};
-
-const login=
-async()=>{
-
-try{
-
-await axios.post(
-
-"http://localhost:5000/api/login",
-
-data
-
-);
-
-alert(
-"Login Success"
-);
-
-navigate("/chat");
-
-}
-
-catch{
-
-alert(
-"Invalid Login"
-);
-
-}
-
-};
-
-return(
-
-<div className="login">
-
-<h1>
-Login
-</h1>
-
-<input
-name="username"
-placeholder="Username"
-onChange={handleChange}
-/>
-
-<input
-type="password"
-name="password"
-placeholder="Password"
-onChange={handleChange}
-/>
-
-<button
-onClick={login}
->
-
-Login
-
-</button>
-
-<button
-onClick={()=>
-navigate(
-"/register"
-)
-}
->
-
-New User
-
-</button>
-
-</div>
-
-);
-
+      <button onClick={() => navigate("/register")}>
+        Register
+      </button>
+    </div>
+  );
 }
 
 export default Login;

@@ -1,149 +1,69 @@
-import React,{useState} from "react";
-
-import {useNavigate}
-from "react-router-dom";
-
-import axios from "axios";
-
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/register.css";
 
-function Register(){
+function Register() {
+  const navigate = useNavigate();
 
-const navigate=
-useNavigate();
+  const [user, setUser] = useState({
+    name: "",
+    username: "",
+    email: "",
+    password: ""
+  });
 
-const [user,setUser]=
-useState({
+  const register = () => {
+    if (!user.username || !user.password) {
+      alert("Fill required fields");
+      return;
+    }
 
-name:"",
-username:"",
-email:"",
-password:""
+    alert("Registered (frontend only)");
+    navigate("/");
+  };
 
-});
+  return (
+    <div className="register">
 
-const handleChange=
-(e)=>{
+      <h1>Create Account</h1>
 
-setUser({
+      <input
+        placeholder="Name"
+        onChange={(e) =>
+          setUser({ ...user, name: e.target.value })
+        }
+      />
 
-...user,
+      <input
+        placeholder="Username"
+        onChange={(e) =>
+          setUser({ ...user, username: e.target.value })
+        }
+      />
 
-[e.target.name]:
-e.target.value
+      <input
+        placeholder="Email"
+        onChange={(e) =>
+          setUser({ ...user, email: e.target.value })
+        }
+      />
 
-});
+      <input
+        type="password"
+        placeholder="Password"
+        onChange={(e) =>
+          setUser({ ...user, password: e.target.value })
+        }
+      />
 
-};
+      <button onClick={register}>Register</button>
 
-const register=
-async()=>{
+      <button onClick={() => navigate("/")}>
+        Already have account
+      </button>
 
-if(
-!user.name||
-!user.username||
-!user.email||
-!user.password
-){
-
-alert(
-"Fill all fields"
-);
-
-return;
-
-}
-
-try{
-
-const response=
-await axios.post(
-
-"http://localhost:5000/api/register",
-
-user
-
-);
-
-console.log(
-response.data
-);
-
-alert(
-"Registration Successful"
-);
-
-navigate("/");
-
-}
-
-catch(error){
-
-console.log(error);
-
-alert(
-"Registration Failed"
-);
-
-}
-
-};
-
-return(
-
-<div className="register">
-
-<h1>
-Create Account
-</h1>
-
-<input
-name="name"
-placeholder="Full Name"
-onChange={handleChange}
-/>
-
-<input
-name="username"
-placeholder="Username"
-onChange={handleChange}
-/>
-
-<input
-name="email"
-placeholder="Email"
-onChange={handleChange}
-/>
-
-<input
-type="password"
-name="password"
-placeholder="Password"
-onChange={handleChange}
-/>
-
-<button
-onClick={register}
->
-
-Register
-
-</button>
-
-<button
-onClick={()=>
-navigate("/")
-}
->
-
-Already Have Account
-
-</button>
-
-</div>
-
-);
-
+    </div>
+  );
 }
 
 export default Register;
