@@ -1,248 +1,605 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+
+import React,{useState} from "react";
+import {useNavigate} from "react-router-dom";
+import axios from "axios";
 import "../styles/chat.css";
 
-function Chat() {
-  const navigate = useNavigate();
+function Chat(){
 
-  const [theme, setTheme] = useState("dark");
+const navigate=useNavigate();
 
-  // YOUR PROFILE (editable)
-  const [currentUser, setCurrentUser] = useState({
-    name: "Tharun",
-    username: "tharunhs",
-    bio: "Available",
-    profilePic: ""
-  });
+const [theme,setTheme]=useState("dark");
 
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [tempBio, setTempBio] = useState(currentUser.bio);
-  const [tempImage, setTempImage] = useState(null);
+const [currentUser,setCurrentUser]=useState(
+JSON.parse(
+localStorage.getItem("user")
+)
+||
+{
+name:"",
+username:"",
+bio:"Available",
+profilePic:"https://i.imgur.com/6VBx3io.png"
+}
+);
 
-  // 👇 NEW: OTHER USER PROFILE
-  const [selectedProfileUser, setSelectedProfileUser] = useState(null);
+const [profileOpen,setProfileOpen]=useState(false);
 
-  const [users] = useState([
-    { id: "1", name: "Alex", last: "Hey 👋", bio: "Hey there" },
-    { id: "2", name: "John", last: "See you", bio: "Busy" },
-    { id: "3", name: "Sara", last: "Ok 👍", bio: "Available" }
-  ]);
+const [tempBio,setTempBio]=useState(
+currentUser.bio
+);
 
-  const [activeUser, setActiveUser] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [text, setText] = useState("");
+const [tempImage,setTempImage]=useState(null);
 
-  const openChat = (user) => {
-    setActiveUser(user);
-    setMessages([
-      { from: "them", text: "Hello 👋" },
-      { from: "me", text: "Hi!" }
-    ]);
-  };
+const [selectedProfileUser,
+setSelectedProfileUser]=useState(null);
 
-  const sendMessage = () => {
-    if (!text.trim()) return;
-    setMessages([...messages, { from: "me", text }]);
-    setText("");
-  };
+const [search,setSearch]=useState("");
 
-  const logout = () => {
-    navigate("/");
-  };
+const [searchUsers,
+setSearchUsers]=useState([]);
 
-  const saveProfile = () => {
-    setCurrentUser({
-      ...currentUser,
-      bio: tempBio,
-      profilePic: tempImage
-        ? URL.createObjectURL(tempImage)
-        : currentUser.profilePic
-    });
+const [activeUser,
+setActiveUser]=useState(null);
 
-    setProfileOpen(false);
-  };
+const [messages,
+setMessages]=useState([]);
 
-  // ⭐ OPEN OTHER USER PROFILE
-  const openUserProfile = (user) => {
-    setSelectedProfileUser(user);
-  };
+const [text,
+setText]=useState("");
 
-  return (
-    <div className={`wa ${theme}`}>
+const searchUser=
+async(value)=>{
 
-      {/* SIDEBAR */}
-      <div className="sidebar">
+setSearch(value);
 
-        <div className="sidebar-top">
-          <h3>WhatsApp</h3>
+if(!value){
 
-          {/* YOUR PROFILE */}
-          <div
-            className="profile-small"
-            onClick={() => {
-              setTempBio(currentUser.bio);
-              setProfileOpen(true);
-            }}
-          >
-            👤
-          </div>
-        </div>
+setSearchUsers([]);
 
-        <div className="chat-list">
-          {users.map((u) => (
-            <div
-              key={u.id}
-              className={`chat-item ${activeUser?.id === u.id ? "active" : ""}`}
-            >
-              
-              {/* CLICK PROFILE ICON → OPEN USER PROFILE */}
-              <div className="avatar">
-                <div
-                  className="avatar-circle"
-                  onClick={() => openUserProfile(u)}
-                />
-              </div>
+return;
 
-              {/* CLICK ROW → OPEN CHAT */}
-              <div onClick={() => openChat(u)}>
-                <b>{u.name}</b>
-                <p>{u.last}</p>
-              </div>
+}
 
-            </div>
-          ))}
-        </div>
-      </div>
+try{
 
-      {/* CHAT AREA */}
-      <div className="chat">
+const res=
+await axios.get(
+`http://localhost:5000/api/search/${value}`
+);
 
-        {activeUser ? (
-          <>
-            <div className="chat-header">
-              <div className="avatar"></div>
-              <div>
-                <b>{activeUser.name}</b>
-                <small>online</small>
-              </div>
-            </div>
+setSearchUsers(
+res.data
+);
 
-            <div className="messages">
-              {messages.map((m, i) => (
-                <div key={i} className={`bubble ${m.from}`}>
-                  {m.text}
-                </div>
-              ))}
-            </div>
+}
 
-            <div className="input-bar">
-              <input
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="Message"
-                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              />
-              <button onClick={sendMessage}>➤</button>
-            </div>
-          </>
-        ) : (
-          <div className="empty">Select a chat</div>
-        )}
-      </div>
+catch(err){
 
-      {/* YOUR PROFILE MODAL */}
-      {profileOpen && (
-        <div className="overlay" onClick={() => setProfileOpen(false)}>
-          <div className="drawer" onClick={(e) => e.stopPropagation()}>
+console.log(err);
 
-            <img
-              className="big-avatar"
-              src={
-                tempImage
-                  ? URL.createObjectURL(tempImage)
-                  : currentUser.profilePic || "https://i.imgur.com/6VBx3io.png"
-              }
-            />
+}
 
-            <h3>{currentUser.name}</h3>
-            <p>@{currentUser.username}</p>
+};
 
-            <textarea
-              value={tempBio}
-              onChange={(e) => setTempBio(e.target.value)}
-            />
+const openChat=
+(user)=>{
 
-            <input type="file" onChange={(e) => setTempImage(e.target.files[0])} />
+setActiveUser(user);
 
-            <button onClick={saveProfile}>Save Profile</button>
+setMessages([
 
-            <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-              Toggle Theme
-            </button>
+{
+from:"them",
+text:"Hello 👋",
+time:"09:21 PM"
+},
 
-            <button onClick={logout} className="logout">
-              Logout
-            </button>
+{
+from:"me",
+text:"Hi!",
+time:"09:22 PM"
+}
 
-          </div>
-        </div>
-      )}
+]);
 
-      {/* ⭐ OTHER USER PROFILE MODAL */}
-      {/* ⭐ OTHER USER PROFILE MODAL */}
-{selectedProfileUser && (
-  <div className="overlay" onClick={() => setSelectedProfileUser(null)}>
-    <div className="drawer modern-profile" onClick={(e) => e.stopPropagation()}>
+};
 
-      {/* PROFILE IMAGE */}
-      <img
-        className="big-avatar"
-        src={
-          selectedProfileUser.profilePic ||
-          "https://i.imgur.com/6VBx3io.png"
-        }
-        alt="profile"
-      />
+const sendMessage=
+()=>{
 
-      {/* NAME */}
-      <h2>{selectedProfileUser.name}</h2>
+if(!text.trim())
+return;
 
-      {/* USERNAME */}
-      <p className="username">@{selectedProfileUser.id}</p>
+const time=
+new Date()
+.toLocaleTimeString(
+[],
+{
+hour:"2-digit",
+minute:"2-digit"
+}
+);
 
-      {/* BIO */}
-      <div className="bio-box">
-        <h4>About</h4>
-        <p>{selectedProfileUser.bio || "Hey there! I am using ChatApp"}</p>
-      </div>
+setMessages([
+...messages,
+{
+from:"me",
+text,
+time
+}
+]);
 
-      {/* STATUS INFO (optional WhatsApp style) */}
-      <div className="info-box">
-        <div>
-          <span>Status:</span>
-          <b>Available</b>
-        </div>
+setText("");
 
-        <div>
-          <span>Last Seen:</span>
-          <b>today</b>
-        </div>
-      </div>
+};
 
-      {/* CLOSE */}
-      <button
-        className="close-btn"
-        onClick={() => setSelectedProfileUser(null)}
-      >
-        Close
-      </button>
+const saveProfile=
+()=>{
 
-    </div>
-  </div>
-)}
+const updated={
 
-    </div>
-  );
+...currentUser,
+
+bio:tempBio,
+
+profilePic:
+
+tempImage
+
+?
+
+URL.createObjectURL(
+tempImage
+)
+
+:
+
+currentUser.profilePic
+
+};
+
+setCurrentUser(
+updated
+);
+
+localStorage.setItem(
+"user",
+JSON.stringify(
+updated
+)
+);
+
+setProfileOpen(false);
+
+};
+
+const logout=
+()=>{
+
+localStorage.removeItem(
+"user"
+);
+
+navigate("/");
+
+};
+
+return(
+
+<div className={`wa ${theme}`}>
+
+<div className="sidebar">
+
+<div className="sidebar-top">
+
+<h3>
+
+WhatsApp
+
+</h3>
+
+<img
+className="profile-small"
+src={currentUser.profilePic}
+alt=""
+onClick={()=>
+setProfileOpen(true)
+}
+/>
+
+</div>
+
+<div className="search">
+
+<input
+
+placeholder="Search username"
+
+value={search}
+
+onChange={(e)=>
+searchUser(
+e.target.value
+)
+}
+
+/>
+
+</div>
+
+<div className="chat-list">
+
+{
+
+searchUsers.map((u)=>(
+
+<div
+
+key={u._id}
+
+className="chat-item"
+
+>
+
+<img
+
+className="avatar-circle"
+
+src={
+u.profilePic
+||
+"https://i.imgur.com/6VBx3io.png"
+}
+
+alt=""
+
+onClick={()=>
+setSelectedProfileUser(u)
+}
+
+/>
+
+<div
+onClick={()=>
+openChat(u)
+}
+>
+
+<b>
+
+{u.username}
+
+</b>
+
+<p>
+
+{u.name}
+
+</p>
+
+</div>
+
+</div>
+
+))
+
+}
+
+</div>
+
+</div>
+
+<div className="chat">
+
+{
+
+activeUser
+
+?
+
+<>
+
+<div className="chat-header">
+
+<img
+
+className="avatar-circle"
+
+src={
+activeUser.profilePic
+||
+"https://i.imgur.com/6VBx3io.png"
+}
+
+alt=""
+
+/>
+
+<div>
+
+<div className="chat-name">
+
+{activeUser.username}
+
+</div>
+
+<div className="online">
+
+● online
+
+</div>
+
+</div>
+
+</div>
+
+<div className="messages">
+
+{
+
+messages.map(
+(m,i)=>
+
+<div
+key={i}
+className={`bubble ${m.from}`}
+>
+
+<div className="msg-text">
+
+{m.text}
+
+</div>
+
+<div className="msg-time">
+
+{m.time}
+
+</div>
+
+</div>
+
+)
+
+}
+
+</div>
+
+<div className="input-bar">
+
+<input
+
+value={text}
+
+placeholder="Type message"
+
+onChange={(e)=>
+setText(
+e.target.value
+)
+}
+
+onKeyDown={(e)=>
+
+e.key==="Enter"
+
+&&
+
+sendMessage()
+
+}
+
+/>
+
+<button
+onClick={
+sendMessage
+}
+>
+
+➤
+
+</button>
+
+</div>
+
+</>
+
+:
+
+<div className="empty">
+
+Search users
+
+</div>
+
+}
+
+</div>
+
+{
+
+profileOpen
+
+&&
+
+<div
+className="overlay"
+>
+
+<div
+className="drawer"
+>
+
+<img
+
+className="big-avatar"
+
+src={
+tempImage
+?
+
+URL.createObjectURL(
+tempImage
+)
+
+:
+
+currentUser.profilePic
+}
+
+alt=""
+
+/>
+
+<h2>
+
+{currentUser.name}
+
+</h2>
+
+<p>
+
+@{currentUser.username}
+
+</p>
+
+<textarea
+
+value={tempBio}
+
+onChange={(e)=>
+setTempBio(
+e.target.value
+)
+}
+
+/>
+
+<input
+
+type="file"
+
+onChange={(e)=>
+setTempImage(
+e.target.files[0]
+)
+}
+
+/>
+
+<button
+onClick={
+saveProfile
+}
+>
+
+Save
+
+</button>
+
+<button
+
+onClick={()=>
+
+setTheme(
+
+theme==="dark"
+
+?
+
+"light"
+
+:
+
+"dark"
+
+)
+
+}
+
+>
+
+Theme
+
+</button>
+
+<button
+onClick={
+logout
+}
+>
+
+Logout
+
+</button>
+
+</div>
+
+</div>
+
+}
+
+{
+
+selectedProfileUser
+
+&&
+
+<div
+className="overlay"
+onClick={()=>
+setSelectedProfileUser(null)
+}
+>
+
+<div
+className="drawer"
+>
+
+<img
+
+className="big-avatar"
+
+src={
+selectedProfileUser.profilePic
+||
+"https://i.imgur.com/6VBx3io.png"
+}
+
+alt=""
+
+/>
+
+<h2>
+
+{selectedProfileUser.name}
+
+</h2>
+
+<p>
+
+@{selectedProfileUser.username}
+
+</p>
+
+<p>
+
+{selectedProfileUser.bio}
+
+</p>
+
+</div>
+
+</div>
+
+}
+
+</div>
+
+);
+
 }
 
 export default Chat;

@@ -1,54 +1,179 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React,{useState} from "react";
+import axios from "axios";
+import {useNavigate} from "react-router-dom";
 import "../styles/login.css";
 
-function Login() {
-  const navigate = useNavigate();
+function Login(){
 
-  const [data, setData] = useState({
-    username: "",
-    password: ""
-  });
+const navigate=
+useNavigate();
 
-  const login = () => {
-    if (!data.username || !data.password) {
-      alert("Fill all fields");
-      return;
-    }
+const [data,setData]=
+useState({
 
-    // fake login
-    localStorage.setItem("chat-user", JSON.stringify(data));
-    navigate("/chat");
-  };
+username:"",
+password:""
 
-  return (
-    <div className="login">
-      <h1>Login</h1>
+});
 
-      <input
-        name="username"
-        placeholder="Username"
-        onChange={(e) =>
-          setData({ ...data, username: e.target.value })
-        }
-      />
+const login=
+async()=>{
 
-      <input
-        type="password"
-        name="password"
-        placeholder="Password"
-        onChange={(e) =>
-          setData({ ...data, password: e.target.value })
-        }
-      />
+if(
 
-      <button onClick={login}>Login</button>
+!data.username||
+!data.password
 
-      <button onClick={() => navigate("/register")}>
-        Register
-      </button>
-    </div>
-  );
+){
+
+alert(
+"Fill all fields"
+);
+
+return;
+
+}
+
+try{
+
+const response=
+
+await axios.post(
+
+"http://localhost:5000/api/login",
+
+data
+
+);
+
+localStorage.setItem(
+
+"user",
+
+JSON.stringify(
+response.data
+)
+
+);
+
+alert(
+"Login Success"
+);
+
+navigate(
+"/chat"
+);
+
+}
+
+catch(err){
+
+if(
+err.response
+){
+
+alert(
+err.response.data
+);
+
+}
+
+else{
+
+alert(
+"Server Error"
+);
+
+}
+
+console.log(err);
+
+}
+
+};
+
+return(
+
+<div className="login">
+
+<h1>
+
+Login
+
+</h1>
+
+<input
+
+name="username"
+
+placeholder="Username"
+
+onChange={(e)=>
+
+setData({
+
+...data,
+
+username:
+e.target.value
+
+})
+
+}
+
+/>
+
+<input
+
+type="password"
+
+name="password"
+
+placeholder="Password"
+
+onChange={(e)=>
+
+setData({
+
+...data,
+
+password:
+e.target.value
+
+})
+
+}
+
+/>
+
+<button
+onClick={login}
+>
+
+Login
+
+</button>
+
+<button
+
+onClick={()=>
+
+navigate(
+"/register"
+)
+
+}
+
+>
+
+Register
+
+</button>
+
+</div>
+
+);
+
 }
 
 export default Login;

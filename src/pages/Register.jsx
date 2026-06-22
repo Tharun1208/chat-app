@@ -1,69 +1,159 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React,{useState} from "react";
+import {useNavigate} from "react-router-dom";
+import axios from "axios";
 import "../styles/register.css";
 
-function Register() {
-  const navigate = useNavigate();
+function Register(){
 
-  const [user, setUser] = useState({
-    name: "",
-    username: "",
-    email: "",
-    password: ""
-  });
+const navigate=
+useNavigate();
 
-  const register = () => {
-    if (!user.username || !user.password) {
-      alert("Fill required fields");
-      return;
-    }
+const [user,setUser]=useState({
 
-    alert("Registered (frontend only)");
-    navigate("/");
-  };
+name:"",
+username:"",
+email:"",
+password:""
 
-  return (
-    <div className="register">
+});
 
-      <h1>Create Account</h1>
+const handleChange=
+(e)=>{
 
-      <input
-        placeholder="Name"
-        onChange={(e) =>
-          setUser({ ...user, name: e.target.value })
-        }
-      />
+setUser({
 
-      <input
-        placeholder="Username"
-        onChange={(e) =>
-          setUser({ ...user, username: e.target.value })
-        }
-      />
+...user,
 
-      <input
-        placeholder="Email"
-        onChange={(e) =>
-          setUser({ ...user, email: e.target.value })
-        }
-      />
+[e.target.name]: e.target.value
 
-      <input
-        type="password"
-        placeholder="Password"
-        onChange={(e) =>
-          setUser({ ...user, password: e.target.value })
-        }
-      />
+});
 
-      <button onClick={register}>Register</button>
+};
 
-      <button onClick={() => navigate("/")}>
-        Already have account
-      </button>
+const register=async()=>{
 
-    </div>
-  );
+if(
+
+!user.name||
+!user.username||
+!user.email||
+!user.password
+
+){
+
+alert(
+"Fill all fields"
+);
+
+return;
+
+}
+
+try{
+
+const response=
+
+await axios.post(
+
+"http://localhost:5000/api/register",
+
+user
+
+);
+
+alert(
+response.data.message
+);
+
+navigate("/");
+
+}
+
+catch(err){
+
+if(
+err.response
+){
+
+alert(
+err.response.data.message
+);
+
+}
+
+else{
+
+alert(
+"Server Error"
+);
+
+}
+
+console.log(err);
+
+}
+
+};
+
+return(
+
+<div className="register">
+
+<h1>
+
+Create Account
+
+</h1>
+
+<input
+name="name"
+placeholder="Name"
+onChange={handleChange}
+/>
+
+<input
+name="username"
+placeholder="Username"
+onChange={handleChange}
+/>
+
+<input
+name="email"
+placeholder="Email"
+onChange={handleChange}
+/>
+
+<input
+type="password"
+name="password"
+placeholder="Password"
+onChange={handleChange}
+/>
+
+<button
+onClick={register}
+
+>
+
+Register
+
+</button>
+
+<button
+onClick={()=>
+navigate("/")
+}
+
+>
+
+Already have account
+
+</button>
+
+</div>
+
+);
+
 }
 
 export default Register;
