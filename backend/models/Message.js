@@ -4,13 +4,29 @@ require("mongoose");
 const messageSchema=
 new mongoose.Schema({
 
-sender:String,
+sender:{
+type:String,
+required:true
+},
 
-receiver:String,
+receiver:{
+type:String,
+required:true
+},
 
-text:String,
+text:{
+type:String,
+required:true
+},
 
-time:String
+time:{
+type:String
+},
+
+createdAt:{
+type:Date,
+default:Date.now
+}
 
 });
 

@@ -1,6 +1,27 @@
-body{
-background:#ece5dd;
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:"Segoe UI";
 }
+
+body{
+
+background:
+linear-gradient(
+135deg,
+#070b1a,
+#111827,
+#2e1065
+);
+
+height:100vh;
+
+overflow:hidden;
+
+}
+
+/* PAGE */
 
 .register{
 
@@ -8,50 +29,255 @@ height:100vh;
 
 display:flex;
 
-flex-direction:column;
-
 justify-content:center;
 
 align-items:center;
 
-gap:15px;
+padding:20px;
 
 }
 
-.register h1{
+/* CARD */
 
-color:#128C7E;
+.register-card{
+
+width:460px;
+
+padding:50px;
+
+border-radius:32px;
+
+background:
+
+rgba(
+255,
+255,
+255,
+0.06
+);
+
+backdrop-filter:
+blur(25px);
+
+border:
+
+1px solid
+rgba(
+255,
+255,
+255,
+0.12
+);
+
+box-shadow:
+
+0 30px 80px
+rgba(
+0,
+0,
+0,
+0.5
+);
+
+display:flex;
+
+flex-direction:column;
+
+gap:18px;
 
 }
 
-.register input{
+/* TITLE */
 
-width:340px;
-
-padding:14px;
-
-border:none;
-
-border-radius:10px;
-
-}
-
-.register button{
-
-width:340px;
-
-padding:14px;
-
-background:#25D366;
-
-border:none;
+.register-card h1{
 
 color:white;
 
-border-radius:10px;
+font-size:42px;
+
+font-weight:700;
+
+}
+
+.register-card p{
+
+color:#9ca3af;
+
+font-size:15px;
+
+margin-bottom:10px;
+
+}
+
+/* INPUT */
+
+.register-card input{
+
+width:100%;
+
+padding:18px;
+
+border:none;
+
+outline:none;
+
+border-radius:18px;
+
+background:
+
+rgba(
+255,
+255,
+255,
+0.08
+);
+
+color:white;
+
+font-size:16px;
+
+transition:.3s;
+
+}
+
+.register-card input::placeholder{
+
+color:#8a8fa7;
+
+}
+
+.register-card input:focus{
+
+transform:translateY(-2px);
+
+background:
+
+rgba(
+255,
+255,
+255,
+0.12
+);
+
+box-shadow:
+
+0 0 25px
+rgba(
+124,
+58,
+237,
+0.35
+);
+
+}
+
+/* BUTTON */
+
+.register-card button{
+
+width:100%;
+
+padding:18px;
+
+border:none;
+
+border-radius:18px;
+
+cursor:pointer;
 
 font-size:18px;
 
-cursor:pointer;
+font-weight:600;
+
+transition:.3s;
+
+}
+
+/* REGISTER */
+
+.register-card button:first-of-type{
+
+background:
+
+linear-gradient(
+90deg,
+#7c3aed,
+#6366f1
+);
+
+color:white;
+
+}
+
+.register-card button:first-of-type:hover{
+
+transform:
+translateY(-4px);
+
+box-shadow:
+
+0 15px 40px
+rgba(
+124,
+58,
+237,
+0.45
+);
+
+}
+
+/* LOGIN */
+
+.secondary{
+
+background:
+
+rgba(
+255,
+255,
+255,
+0.08
+);
+
+color:white;
+
+}
+
+.secondary:hover{
+
+background:
+
+rgba(
+255,
+255,
+255,
+0.15
+);
+
+}
+
+/* MOBILE */
+
+@media(max-width:600px){
+
+.register-card{
+
+width:100%;
+
+padding:35px;
+
+}
+
+.register-card h1{
+
+font-size:32px;
+
+}
+
+.register-card input{
+
+padding:15px;
+
+}
 
 }

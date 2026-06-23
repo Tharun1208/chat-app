@@ -24,13 +24,15 @@ setUser({
 
 ...user,
 
-[e.target.name]: e.target.value
+[e.target.name]:
+e.target.value
 
 });
 
 };
 
-const register=async()=>{
+const register=
+async()=>{
 
 if(
 
@@ -99,27 +101,34 @@ return(
 
 <div className="register">
 
+<div className="register-card">
+
 <h1>
-
 Create Account
-
 </h1>
+
+<p>
+Start your new journey
+</p>
 
 <input
 name="name"
 placeholder="Name"
+value={user.name}
 onChange={handleChange}
 />
 
 <input
 name="username"
 placeholder="Username"
+value={user.username}
 onChange={handleChange}
 />
 
 <input
 name="email"
 placeholder="Email"
+value={user.email}
 onChange={handleChange}
 />
 
@@ -127,28 +136,28 @@ onChange={handleChange}
 type="password"
 name="password"
 placeholder="Password"
+value={user.password}
 onChange={handleChange}
 />
 
 <button
 onClick={register}
-
 >
-
 Register
-
 </button>
 
 <button
+className="secondary"
 onClick={()=>
 navigate("/")
 }
-
 >
 
 Already have account
 
 </button>
+
+</div>
 
 </div>
 

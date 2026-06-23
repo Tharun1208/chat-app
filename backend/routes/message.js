@@ -1,3 +1,4 @@
+
 const router=
 require("express")
 .Router();
@@ -8,36 +9,72 @@ require("../models/Message");
 router.post(
 "/send",
 
-async(
-req,
-res
-)=>{
+async(req,res)=>{
 
 try{
 
 const newMessage=
-new Message({
-
-sender:
-req.body.sender,
-
-receiver:
-req.body.receiver,
-
-text:
-req.body.text,
-
-time:
-req.body.time
-
-});
+new Message(req.body);
 
 await newMessage.save();
 
-res
-.status(200)
-.send(
-"Sent"
+res.send("Sent");
+
+}
+
+catch(err){
+
+console.log(err);
+
+res.status(500)
+.send("Failed");
+
+}
+
+}
+);
+
+
+
+router.get(
+"/:sender/:receiver",
+
+async(req,res)=>{
+
+try{
+
+const messages=
+
+await Message.find({
+
+$or:[
+
+{
+
+sender:
+req.params.sender,
+
+receiver:
+req.params.receiver
+
+},
+
+{
+
+sender:
+req.params.receiver,
+
+receiver:
+req.params.sender
+
+}
+
+]
+
+});
+
+res.send(
+messages
 );
 
 }

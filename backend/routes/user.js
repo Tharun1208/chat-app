@@ -138,7 +138,38 @@ res
 );
 
 }
+const mongoose=
+require("mongoose");
 
+const userSchema=
+new mongoose.Schema({
+
+name:String,
+
+username:String,
+
+email:String,
+
+password:String,
+
+bio:{
+type:String,
+default:"Available"
+},
+
+profilePic:{
+type:String,
+default:
+"https://i.imgur.com/6VBx3io.png"
+}
+
+});
+
+module.exports=
+mongoose.model(
+"User",
+userSchema
+);
 });
 
 

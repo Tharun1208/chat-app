@@ -96,11 +96,19 @@ return(
 
 <div className="login">
 
+<div className="login-card">
+
 <h1>
 
-Login
+Welcome Back
 
 </h1>
+
+<p>
+
+Login to continue
+
+</p>
 
 <input
 
@@ -147,12 +155,14 @@ e.target.value
 />
 
 <button
-onClick={login}
+onClick={
+login
+}
 >
 
 Login
 
-</button>
+</button><br></br>
 
 <button
 
@@ -166,9 +176,11 @@ navigate(
 
 >
 
-Register
+Create Account
 
 </button>
+
+</div>
 
 </div>
 

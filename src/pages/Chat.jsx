@@ -1,5 +1,5 @@
-
-import React,{useState} from "react";
+import React,{useState,useEffect}from "react";
+import {io}from "socket.io-client";
 import {useNavigate} from "react-router-dom";
 import axios from "axios";
 import "../styles/chat.css";
@@ -7,6 +7,7 @@ import "../styles/chat.css";
 function Chat(){
 
 const navigate=useNavigate();
+const socket=io("http://localhost:5000");
 
 const [theme,setTheme]=useState("dark");
 
@@ -37,13 +38,55 @@ setSelectedProfileUser]=useState(null);
 const [search,setSearch]=useState("");
 
 const [searchUsers,
-setSearchUsers]=useState([]);
+setSearchUsers]=
+useState(
+
+JSON.parse(
+localStorage.getItem(
+"chatUsers"
+)
+)
+
+||
+
+[]
+
+);
+
 
 const [activeUser,
-setActiveUser]=useState(null);
+setActiveUser]=
+useState(
+
+JSON.parse(
+localStorage.getItem(
+"activeUser"
+)
+)
+
+||
+
+null
+
+);
+
 
 const [messages,
-setMessages]=useState([]);
+setMessages]=
+useState(
+
+JSON.parse(
+localStorage.getItem(
+"messages"
+)
+)
+
+||
+
+[]
+
+);
+
 
 const [text,
 setText]=useState("");
@@ -82,33 +125,222 @@ console.log(err);
 
 };
 
-const openChat=
-(user)=>{
 
-setActiveUser(user);
+const openChat=async(user)=>{
 
-setMessages([
+const latest=
 
-{
-from:"them",
-text:"Hello 👋",
-time:"09:21 PM"
-},
+JSON.parse(
+localStorage.getItem("user")
+);
 
-{
-from:"me",
-text:"Hi!",
-time:"09:22 PM"
+if(
+latest?.username
+===
+user.username
+){
+
+setActiveUser(
+latest
+);
+
+}else{
+
+setActiveUser(
+user
+);
+
 }
 
-]);
+localStorage.setItem(
+"activeUser",
+JSON.stringify(user)
+);
+
+try{
+
+const res=
+await axios.get(
+
+`http://localhost:5000/message/${currentUser.username}/${user.username}`
+
+);
+
+const formatted=
+
+res.data.map(
+m=>({
+
+...m,
+
+from:
+
+m.sender===currentUser.username
+
+?
+
+"me"
+
+:
+
+"them"
+
+})
+);
+
+setMessages(
+formatted
+);
+
+localStorage.setItem(
+"messages",
+JSON.stringify(
+formatted
+)
+);
+
+}
+
+catch(err){
+
+console.log(err);
+
+setMessages([]);
+
+}
+
+const existing=
+
+JSON.parse(
+localStorage.getItem(
+"chatUsers"
+)
+)
+
+||
+
+[];
+
+const already=
+
+existing.find(
+u=>u._id===user._id
+);
+
+if(!already){
+
+const updated=[
+
+...existing,
+user
+
+];
+
+localStorage.setItem(
+
+"chatUsers",
+
+JSON.stringify(
+updated
+)
+
+);
+
+setSearchUsers(
+updated
+);
+
+}
 
 };
 
-const sendMessage=
+
+
+
+
+const saveProfile=
+async()=>{
+
+const image=
+
+tempImage
+
+?
+
+URL.createObjectURL(
+tempImage
+)
+
+:
+
+currentUser.profilePic;
+
+try{
+
+const res=
+
+await axios.put(
+
+"http://localhost:5000/profile/update",
+
+{
+
+id:
+currentUser._id,
+
+bio:
+tempBio,
+
+profilePic:
+image
+
+}
+
+);
+
+setCurrentUser(
+res.data
+);
+
+localStorage.setItem(
+
+"user",
+
+JSON.stringify(
+res.data
+)
+
+);
+
+setProfileOpen(false);
+
+}
+
+catch(err){
+
+console.log(err);
+
+}
+
+};
+const logout=
 ()=>{
 
-if(!text.trim())
+localStorage.removeItem(
+"user"
+);
+
+navigate("/");
+
+};
+const sendMessage=
+async()=>{
+
+if(
+!text.trim()
+||
+!activeUser
+)
 return;
 
 const time=
@@ -121,70 +353,132 @@ minute:"2-digit"
 }
 );
 
-setMessages([
-...messages,
-{
-from:"me",
+const msg={
+
+sender:
+currentUser.username,
+
+receiver:
+activeUser.username,
+
 text,
-time
-}
-]);
+
+time,
+
+from:"me"
+
+};
+
+try{
+
+await axios.post(
+
+"http://localhost:5000/message/send",
+
+msg
+
+);
+
+socket.emit(
+
+"sendMessage",
+
+msg
+
+);
+
+setMessages(
+
+prev=>
+
+[
+
+...prev,
+
+msg
+
+]
+
+);
 
 setText("");
 
+}
+
+catch(err){
+
+console.log(err);
+
+}
+
 };
+useEffect(()=>{
 
-const saveProfile=
-()=>{
+socket.on(
 
-const updated={
+"receiveMessage",
 
-...currentUser,
+(data)=>{
 
-bio:tempBio,
+if(
 
-profilePic:
+data.sender===activeUser?.username
 
-tempImage
+||
+
+data.receiver===activeUser?.username
+
+){
+
+setMessages(
+
+prev=>
+
+[
+
+...prev,
+
+{
+
+...data,
+
+from:
+
+data.sender===currentUser.username
 
 ?
 
-URL.createObjectURL(
-tempImage
-)
+"me"
 
 :
 
-currentUser.profilePic
+"them"
+
+}
+
+]
+
+);
+
+}
+
+}
+
+);
+
+return()=>{
+
+socket.off(
+"receiveMessage"
+);
 
 };
 
-setCurrentUser(
-updated
-);
-
-localStorage.setItem(
-"user",
-JSON.stringify(
-updated
-)
-);
-
-setProfileOpen(false);
-
-};
-
-const logout=
-()=>{
-
-localStorage.removeItem(
-"user"
-);
-
-navigate("/");
-
-};
-
+},[
+activeUser,
+currentUser.username,
+socket
+]);
 return(
 
 <div className={`wa ${theme}`}>
@@ -195,7 +489,7 @@ return(
 
 <h3>
 
-WhatsApp
+NexTalk
 
 </h3>
 
@@ -230,34 +524,33 @@ e.target.value
 
 <div className="chat-list">
 
+
 {
 
-searchUsers.map((u)=>(
+(searchUsers.length
+?
+searchUsers
+:
+[])
+
+.map((u)=>(
 
 <div
-
 key={u._id}
-
 className="chat-item"
-
 >
 
 <img
-
 className="avatar-circle"
-
 src={
 u.profilePic
 ||
 "https://i.imgur.com/6VBx3io.png"
 }
-
 alt=""
-
 onClick={()=>
 setSelectedProfileUser(u)
 }
-
 />
 
 <div
@@ -267,15 +560,11 @@ openChat(u)
 >
 
 <b>
-
 {u.username}
-
 </b>
 
 <p>
-
 {u.name}
-
 </p>
 
 </div>
@@ -433,24 +722,17 @@ className="drawer"
 >
 
 <img
-
 className="big-avatar"
 
 src={
 tempImage
 ?
-
-URL.createObjectURL(
-tempImage
-)
-
+URL.createObjectURL(tempImage)
 :
-
 currentUser.profilePic
 }
 
 alt=""
-
 />
 
 <h2>
