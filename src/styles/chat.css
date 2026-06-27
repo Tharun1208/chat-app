@@ -910,3 +910,10 @@ width:95%;
 }
 
 }
+.last-msg{
+font-size:12px;
+color:#888;
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+}

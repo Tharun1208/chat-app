@@ -1,81 +1,74 @@
-const express=
-require("express");
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const http = require("http");
+const path = require("path");
 
-const mongoose=
-require("mongoose");
+const { Server } = require("socket.io");
 
-const cors=
-require("cors");
+const userRoute = require("./routes/user");
+const messageRoute = require("./routes/message");
+const profileRoute = require("./routes/profile");
 
-const http=
-require("http");
+const app = express();
 
-const {Server}=
-require("socket.io");
+const server = http.createServer(app);
 
-const app=
-express();
-
-const server=
-http.createServer(app);
-
-const io=
-new Server(
-server,
-{
+const io = new Server(server,{
 cors:{
-origin:"http://localhost:3000"
+origin:"http://localhost:3000",
+methods:["GET","POST","PUT"]
 }
-}
-);
+});
 
-const userRoute=
-require("./routes/user");
-
-const messageRoute=
-require("./routes/message");
-
-const profileRoute=
-require("./routes/profile");
+const onlineUsers = new Set();
 
 app.use(cors());
-
 app.use(express.json());
 
 app.use(
-"/api",
-userRoute
+"/uploads",
+express.static(
+path.join(__dirname,"uploads")
+)
 );
 
-app.use(
-"/message",
-messageRoute
-);
-
-app.use(
-"/profile",
-profileRoute
-);
+app.use("/api",userRoute);
+app.use("/message",messageRoute);
+app.use("/profile",profileRoute);
 
 mongoose
 .connect(
 "mongodb://127.0.0.1:27017/chathub"
 )
 .then(()=>{
-
-console.log(
-"Mongo Connected"
-);
-
+console.log("Mongo Connected");
+})
+.catch((err)=>{
+console.log(err);
 });
 
-io.on(
-"connection",
-(socket)=>{
+io.on("connection",(socket)=>{
 
 console.log(
 "Connected:",
 socket.id
+);
+
+socket.on(
+"join",
+(username)=>{
+
+socket.username = username;
+
+onlineUsers.add(username);
+
+io.emit(
+"onlineUsers",
+Array.from(onlineUsers)
+);
+
+}
 );
 
 socket.on(
@@ -87,17 +80,33 @@ io.emit(
 data
 );
 
-});
+}
+);
 
 socket.on(
 "disconnect",
 ()=>{
 
 console.log(
-"Disconnected"
+"Disconnected:",
+socket.id
 );
 
-});
+if(socket.username){
+
+onlineUsers.delete(
+socket.username
+);
+
+}
+
+io.emit(
+"onlineUsers",
+Array.from(onlineUsers)
+);
+
+}
+);
 
 });
 
@@ -106,7 +115,8 @@ server.listen(
 ()=>{
 
 console.log(
-"Server Running"
+"Server Running on Port 5000"
 );
 
-});
+}
+);

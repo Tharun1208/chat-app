@@ -39,6 +39,10 @@ const [search,setSearch]=useState("");
 
 const [searchUsers,
 setSearchUsers]=
+useState([]);
+
+const [chatUsers,
+setChatUsers]=
 useState(
 
 JSON.parse(
@@ -126,6 +130,7 @@ console.log(err);
 };
 
 
+
 const openChat=async(user)=>{
 
 const latest=
@@ -209,53 +214,41 @@ setMessages([]);
 
 }
 
-const existing=
-
+const existing =
 JSON.parse(
-localStorage.getItem(
-"chatUsers"
+localStorage.getItem("chatUsers")
 )
-)
-
 ||
-
 [];
 
-const already=
-
+const already =
 existing.find(
-u=>u._id===user._id
+u => u._id === user._id
 );
 
 if(!already){
 
-const updated=[
-
+const updated = [
 ...existing,
 user
-
 ];
 
 localStorage.setItem(
-
 "chatUsers",
-
-JSON.stringify(
-updated
-)
-
+JSON.stringify(updated)
 );
 
-setSearchUsers(
+setChatUsers(updated);
+
+console.log(
+"Saved Users:",
 updated
 );
 
 }
 
+
 };
-
-
-
 
 
 const saveProfile=
@@ -401,6 +394,39 @@ msg
 
 );
 
+const updatedUsers =
+
+chatUsers.map(u =>
+
+u.username === activeUser.username
+
+?
+
+{
+...u,
+lastMessage:text
+}
+
+:
+
+u
+
+);
+
+setChatUsers(
+updatedUsers
+);
+
+localStorage.setItem(
+
+"chatUsers",
+
+JSON.stringify(
+updatedUsers
+)
+
+);
+
 setText("");
 
 }
@@ -479,6 +505,38 @@ activeUser,
 currentUser.username,
 socket
 ]);
+
+const [onlineUsers,
+setOnlineUsers]=
+useState([]);
+useEffect(()=>{
+
+socket.emit(
+"join",
+currentUser.username
+);
+
+socket.on(
+"onlineUsers",
+(users)=>{
+
+setOnlineUsers(users);
+
+}
+);
+
+return()=>{
+
+socket.off(
+"onlineUsers"
+);
+
+};
+
+},[
+currentUser.username
+]);
+
 return(
 
 <div className={`wa ${theme}`}>
@@ -527,13 +585,12 @@ e.target.value
 
 {
 
-(searchUsers.length
+(search
 ?
 searchUsers
 :
-[])
-
-.map((u)=>(
+chatUsers
+).map((u)=>(
 
 <div
 key={u._id}
@@ -542,12 +599,12 @@ className="chat-item"
 
 <img
 className="avatar-circle"
-src={
-u.profilePic
-||
-"https://i.imgur.com/6VBx3io.png"
-}
-alt=""
+src={u.profilePic}
+alt="profile"
+onError={(e)=>{
+e.target.src =
+"https://i.imgur.com/6VBx3io.png";
+}}
 onClick={()=>
 setSelectedProfileUser(u)
 }
@@ -563,8 +620,10 @@ openChat(u)
 {u.username}
 </b>
 
-<p>
-{u.name}
+<p className="last-msg">
+
+{u.lastMessage || u.name}
+
 </p>
 
 </div>
@@ -572,6 +631,7 @@ openChat(u)
 </div>
 
 ))
+
 
 }
 
@@ -615,7 +675,21 @@ alt=""
 
 <div className="online">
 
-● online
+{
+
+onlineUsers.includes(
+activeUser.username
+)
+
+?
+
+"🟢 Online"
+
+:
+
+"⚫ Offline"
+
+}
 
 </div>
 

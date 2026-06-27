@@ -120,7 +120,7 @@ $options: "i"
 }
 
 }).select(
-"name username email"
+"name username email bio profilePic"
 );
 
 res.json(users);
