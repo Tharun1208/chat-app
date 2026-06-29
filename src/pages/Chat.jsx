@@ -4,12 +4,12 @@ import {useNavigate} from "react-router-dom";
 import axios from "axios";
 import "../styles/chat.css";
 
+const socket=io("http://localhost:5000");
 function Chat(){
 
 const navigate=useNavigate();
-const socket=io("http://localhost:5000");
 
-const [theme,setTheme]=useState("dark");
+
 
 const [currentUser,setCurrentUser]=useState(
 JSON.parse(
@@ -19,15 +19,25 @@ localStorage.getItem("user")
 {
 name:"",
 username:"",
-bio:"Available",
+bio:"",
 profilePic:"https://i.imgur.com/6VBx3io.png"
 }
 );
 
 const [profileOpen,setProfileOpen]=useState(false);
 
-const [tempBio,setTempBio]=useState(
-currentUser.bio
+const [tempBio,setTempBio]=useState(currentUser.bio);
+
+const [unreadCounts,setUnreadCounts] = useState(
+
+JSON.parse(
+localStorage.getItem("unreadCounts")
+)
+
+||
+
+{}
+
 );
 
 const [tempImage,setTempImage]=useState(null);
@@ -41,14 +51,14 @@ const [searchUsers,
 setSearchUsers]=
 useState([]);
 
-const [chatUsers,
-setChatUsers]=
-useState(
+const [chatUsers,setChatUsers]=useState(
 
 JSON.parse(
+
 localStorage.getItem(
-"chatUsers"
+`chatUsers_${currentUser.username}`
 )
+
 )
 
 ||
@@ -56,7 +66,6 @@ localStorage.getItem(
 []
 
 );
-
 
 const [activeUser,
 setActiveUser]=
@@ -128,16 +137,33 @@ console.log(err);
 }
 
 };
-
-
-
 const openChat=async(user)=>{
+
+setUnreadCounts(prev=>{
+
+const updated={
+
+...prev,
+
+[user.username]:0
+
+};
+
+localStorage.setItem(
+"unreadCounts",
+JSON.stringify(updated)
+);
+
+return updated;
+
+});
 
 const latest=
 
 JSON.parse(
 localStorage.getItem("user")
 );
+
 
 if(
 latest?.username
@@ -234,7 +260,7 @@ user
 ];
 
 localStorage.setItem(
-"chatUsers",
+`chatUsers_${currentUser.username}`,
 JSON.stringify(updated)
 );
 
@@ -254,39 +280,42 @@ updated
 const saveProfile=
 async()=>{
 
-const image=
-
-tempImage
-
-?
-
-URL.createObjectURL(
-tempImage
-)
-
-:
-
-currentUser.profilePic;
-
 try{
 
-const res=
+const formData=
+new FormData();
 
+formData.append(
+"id",
+currentUser._id
+);
+
+formData.append(
+"bio",
+tempBio
+);
+
+if(tempImage){
+
+formData.append(
+"profilePic",
+tempImage
+);
+
+}
+
+const res=
 await axios.put(
 
 "http://localhost:5000/profile/update",
 
+formData,
+
 {
-
-id:
-currentUser._id,
-
-bio:
-tempBio,
-
-profilePic:
-image
-
+headers:{
+"Content-Type":
+"multipart/form-data"
+}
 }
 
 );
@@ -303,6 +332,49 @@ JSON.stringify(
 res.data
 )
 
+);
+const users =
+
+JSON.parse(
+localStorage.getItem("chatUsers")
+)
+
+||
+
+[];
+
+const updatedUsers =
+
+users.map(u =>
+
+u._id === res.data._id
+
+?
+
+{
+...u,
+profilePic: res.data.profilePic,
+bio: res.data.bio
+}
+
+:
+
+u
+
+);
+
+localStorage.setItem(
+
+"chatUsers",
+
+JSON.stringify(
+updatedUsers
+)
+
+);
+
+setChatUsers(
+updatedUsers
 );
 
 setProfileOpen(false);
@@ -440,75 +512,73 @@ console.log(err);
 };
 useEffect(()=>{
 
-socket.on(
-
-"receiveMessage",
-
-(data)=>{
+const handleReceiveMessage = (data) => {
 
 if(
-
-data.sender===activeUser?.username
-
-||
-
-data.receiver===activeUser?.username
-
+data.sender === currentUser.username
 ){
+return;
+}
 
-setMessages(
+if (
+data.sender !== currentUser.username &&
+data.sender !== activeUser?.username
+) {
 
-prev=>
+setUnreadCounts(prev=>{
 
-[
+const updated={
+
+...prev,
+
+[data.sender]:
+(prev[data.sender] || 0) + 1
+
+};
+
+localStorage.setItem(
+"unreadCounts",
+JSON.stringify(updated)
+);
+
+return updated;
+
+});
+
+}
+
+if (
+data.sender === activeUser?.username ||
+data.receiver === activeUser?.username
+) {
+
+setMessages(prev => [
 
 ...prev,
 
 {
-
 ...data,
-
-from:
-
-data.sender===currentUser.username
-
-?
-
-"me"
-
-:
-
-"them"
-
+from:"them"
 }
 
-]
-
-);
+]);
 
 }
-
-}
-
-);
-
-return()=>{
-
-socket.off(
-"receiveMessage"
-);
 
 };
 
-},[
+socket.on("receiveMessage", handleReceiveMessage);
+
+return () => {
+  socket.off("receiveMessage", handleReceiveMessage);
+};
+
+}, [
 activeUser,
-currentUser.username,
-socket
+currentUser.username
 ]);
 
-const [onlineUsers,
-setOnlineUsers]=
-useState([]);
+const [onlineUsers,setOnlineUsers]=useState([]);
 useEffect(()=>{
 
 socket.emit(
@@ -539,7 +609,7 @@ currentUser.username
 
 return(
 
-<div className={`wa ${theme}`}>
+<div className="wa">
 
 <div className="sidebar">
 
@@ -553,7 +623,13 @@ NexTalk
 
 <img
 className="profile-small"
-src={currentUser.profilePic}
+src={
+currentUser.profilePic
+?
+`${currentUser.profilePic}?t=${Date.now()}`
+:
+"https://i.imgur.com/6VBx3io.png"
+}
 alt=""
 onClick={()=>
 setProfileOpen(true)
@@ -616,13 +692,52 @@ openChat(u)
 }
 >
 
+<div
+style={{
+display:"flex",
+justifyContent:"space-between",
+alignItems:"center"
+}}
+>
+
 <b>
 {u.username}
 </b>
 
-<p className="last-msg">
+{
 
-{u.lastMessage || u.name}
+unreadCounts[
+u.username
+] > 0
+
+&&
+
+<span
+className="unread-badge"
+
+>
+
+{
+unreadCounts[
+u.username
+]
+}
+
+</span>
+
+}
+
+</div>
+
+<p
+className="last-msg"
+>
+
+{
+u.lastMessage
+||
+u.name
+}
 
 </p>
 
@@ -852,32 +967,6 @@ saveProfile
 >
 
 Save
-
-</button>
-
-<button
-
-onClick={()=>
-
-setTheme(
-
-theme==="dark"
-
-?
-
-"light"
-
-:
-
-"dark"
-
-)
-
-}
-
->
-
-Theme
 
 </button>
 
