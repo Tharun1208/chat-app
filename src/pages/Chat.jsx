@@ -1,4 +1,4 @@
-import React,{useState,useEffect}from "react";
+import React,{useState,useEffect,useRef}from "react";
 import {io}from "socket.io-client";
 import {useNavigate} from "react-router-dom";
 import axios from "axios";
@@ -9,6 +9,7 @@ function Chat(){
 
 const navigate=useNavigate();
 
+const bottomRef = useRef(null);
 
 
 const [currentUser,setCurrentUser]=useState(
@@ -69,19 +70,7 @@ localStorage.getItem(
 
 const [activeUser,
 setActiveUser]=
-useState(
-
-JSON.parse(
-localStorage.getItem(
-"activeUser"
-)
-)
-
-||
-
-null
-
-);
+useState(null);
 
 
 const [messages,
@@ -242,7 +231,7 @@ setMessages([]);
 
 const existing =
 JSON.parse(
-localStorage.getItem("chatUsers")
+localStorage.getItem(`chatUsers_${currentUser.username}`)
 )
 ||
 [];
@@ -336,7 +325,7 @@ res.data
 const users =
 
 JSON.parse(
-localStorage.getItem("chatUsers")
+localStorage.getItem(`chatUsers_${currentUser.username}`)
 )
 
 ||
@@ -365,7 +354,7 @@ u
 
 localStorage.setItem(
 
-"chatUsers",
+`chatUsers_${currentUser.username}`,
 
 JSON.stringify(
 updatedUsers
@@ -491,7 +480,7 @@ updatedUsers
 
 localStorage.setItem(
 
-"chatUsers",
+`chatUsers_${currentUser.username}`,
 
 JSON.stringify(
 updatedUsers
@@ -567,6 +556,7 @@ from:"them"
 
 };
 
+
 socket.on("receiveMessage", handleReceiveMessage);
 
 return () => {
@@ -579,6 +569,16 @@ currentUser.username
 ]);
 
 const [onlineUsers,setOnlineUsers]=useState([]);
+useEffect(()=>{
+
+bottomRef.current?.scrollIntoView({
+
+behavior:"smooth"
+
+});
+
+},[messages]);
+
 useEffect(()=>{
 
 socket.emit(
@@ -655,6 +655,7 @@ e.target.value
 />
 
 </div>
+
 
 <div className="chat-list">
 
@@ -823,7 +824,6 @@ messages.map(
 key={i}
 className={`bubble ${m.from}`}
 >
-
 <div className="msg-text">
 
 {m.text}
@@ -841,6 +841,7 @@ className={`bubble ${m.from}`}
 )
 
 }
+<div ref={bottomRef}></div>
 
 </div>
 
